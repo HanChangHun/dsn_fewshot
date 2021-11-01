@@ -79,7 +79,7 @@ _CIFAR_FS_DATASET_DIR = './cifar/CIFAR-FS/' (in data/CIFAR_FS.py)
 Train mini-ImageNet:
 
 ```
-  python3 train.py --gpu 0,1,2,3 --save-path "./experiments/miniImageNet_subspace" --train-shot 15 --\
+  python3 train.py --gpu 0,1,2,3 --save-path "./experiments/miniImageNet_subspace" --train-shot 15 \
   --head Subspace --network ResNet --dataset miniImageNet --eps 0.1
 ```
 

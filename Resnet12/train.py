@@ -16,7 +16,8 @@ from models.ResNet12_embedding import resnet12
 import torch.nn as nn
 from utils import set_gpu, Timer, count_accuracy, check_dir, log
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0,1,2,3"
+if torch.cuda.is_available():
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0,1,2,3"
 #print(torch.cuda.get_device_properties(3))
 #print("asd")
 
@@ -116,7 +117,7 @@ if __name__ == '__main__':
     parser.add_argument('--test-way', type=int, default=5,
                             help='number of classes in one test (or validation) episode')
     parser.add_argument('--save-path', default='./experiments/exp_1')
-    parser.add_argument('--gpu', default='0,1,2,3') #using 4 gpus
+    parser.add_argument('--gpu', default=None) #using cpu by default
     parser.add_argument('--network', type=str, default='ResNet',
                             help='choose which embedding network to use. ResNet')
     parser.add_argument('--head', type=str, default='Subspace',
@@ -206,7 +207,10 @@ if __name__ == '__main__':
         train_losses = []
 
         for i, batch in enumerate(tqdm(dloader_train(epoch)), 1):
-            data_support, labels_support, data_query, labels_query, _, _ = [x.cuda() for x in batch]
+            if os.environ['CUDA_VISIBLE_DEVICES']:
+                data_support, labels_support, data_query, labels_query, _, _ = [x.cuda() for x in batch]
+            else:
+                data_support, labels_support, data_query, labels_query, _, _ = [x.device('cpu') for x in batch]
 
             train_n_support = opt.train_way * opt.train_shot
             train_n_query = opt.train_way * opt.train_query
@@ -247,7 +251,10 @@ if __name__ == '__main__':
         val_losses = []
 
         for i, batch in enumerate(tqdm(dloader_val(epoch)), 1):
-            data_support, labels_support, data_query, labels_query, _, _ = [x.cuda() for x in batch]
+            if os.environ['CUDA_VISIBLE_DEVICES']:
+                data_support, labels_support, data_query, labels_query, _, _ = [x.cuda() for x in batch]
+            else:
+                data_support, labels_support, data_query, labels_query, _, _ = [x.device('cpu') for x in batch]
 
             test_n_support = opt.test_way * opt.val_shot
             test_n_query = opt.test_way * opt.val_query
