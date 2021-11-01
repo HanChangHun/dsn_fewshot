@@ -106,36 +106,7 @@ class tieredImageNet(data.Dataset):
             self.num_cats = len(self.labelIds)
             self.labelIds_base = self.labelIds
             self.num_cats_base = len(self.labelIds_base)
-        # if self.phase=='train':
-        #     # During training phase we only load the training phase images
-        #     # of the training categories (aka base categories).
-        #     data_train = load_data(label_train_categories_train_phase)
-        #     #self.data = data_train['data']
-        #     self.labels = data_train['labels']
-        #     self.data = np.load(file_train_categories_train_phase)['images']#np.array(load_data(file_train_categories_train_phase))
-        #     #self.labels = load_data(file_train_categories_train_phase)#data_train['labels']
-        #
-        #
-        #     data_base = load_data(label_train_categories_val_phase)['labels']
-        #     data_base_images = np.load(file_train_categories_val_phase)['images']
-        #     data_novel = load_data(label_val_categories_val_phase)['labels']
-        #     data_novel_images = np.load(file_val_categories_val_phase)['images']
-        #
-        #     self.data = np.concatenate(
-        #         [self.data, data_base_images], axis=0)
-        #     self.data = np.concatenate(
-        #         [self.data, data_novel_images], axis=0)
-        #     self.labels = np.concatenate(
-        #         [self.labels, data_base], axis=0)
-        #     self.labels = np.concatenate(
-        #         [self.labels, data_novel], axis=0)
-        #
-        #
-        #     self.label2ind = buildLabelIndex(self.labels)
-        #     self.labelIds = sorted(self.label2ind.keys())
-        #     self.num_cats = len(self.labelIds)
-        #     self.labelIds_base = self.labelIds
-        #     self.num_cats_base = len(self.labelIds_base)
+
         elif self.phase == 'trainval':
             # During training phase we only load the training phase images
             # of the training categories (aka base categories).
