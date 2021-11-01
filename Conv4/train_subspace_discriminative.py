@@ -63,7 +63,7 @@ if __name__ == '__main__':
     else:
         shot_num = args.shot
     
-     projection_pro = Subspace_Projection(num_dim=args.subspace_dim)
+    projection_pro = Subspace_Projection(num_dim=args.subspace_dim)
     
     def save_model(name):
         if not os.path.exists(args.save_path):

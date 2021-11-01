@@ -106,7 +106,6 @@ class tieredImageNet(data.Dataset):
             self.num_cats = len(self.labelIds)
             self.labelIds_base = self.labelIds
             self.num_cats_base = len(self.labelIds_base)
-
         elif self.phase == 'trainval':
             # During training phase we only load the training phase images
             # of the training categories (aka base categories).
