@@ -28,7 +28,7 @@ from pdb import set_trace as breakpoint
 
 # Set the appropriate paths of the datasets here.
 # _CIFAR_FS_DATASET_DIR = './cifar/CIFAR-FS/'
-_CIFAR_FS_DATASET_DIR = '/home/chun/workspaces/study/2021-2/dsn_fewshot/Resnet12/data/cifar/CIFAR-FS/'
+_CIFAR_FS_DATASET_DIR = './datasets/cifar/'
 
 def buildLabelIndex(labels):
     label2inds = {}
@@ -61,19 +61,19 @@ class CIFAR_FS(data.Dataset):
         print('Loading CIFAR-FS dataset - phase {0}'.format(phase))
         file_train_categories_train_phase = os.path.join(
             _CIFAR_FS_DATASET_DIR,
-            'CIFAR_FS_train.pickle')
+            'train')
         file_train_categories_val_phase = os.path.join(
             _CIFAR_FS_DATASET_DIR,
-            'CIFAR_FS_train.pickle')
+            'train')
         file_train_categories_test_phase = os.path.join(
             _CIFAR_FS_DATASET_DIR,
-            'CIFAR_FS_train.pickle')
+            'train')
         file_val_categories_val_phase = os.path.join(
             _CIFAR_FS_DATASET_DIR,
-            'CIFAR_FS_val.pickle')
+            'meta')
         file_test_categories_test_phase = os.path.join(
             _CIFAR_FS_DATASET_DIR,
-            'CIFAR_FS_test.pickle')
+            'test')
 
         if self.phase=='train':
             # During training phase we only load the training phase images
@@ -157,7 +157,6 @@ class CIFAR_FS(data.Dataset):
                 normalize
             ])
         else:
-            
             self.transform = transforms.Compose([
                 transforms.RandomCrop(32, padding=4),
                 transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4),

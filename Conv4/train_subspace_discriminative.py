@@ -5,6 +5,7 @@ import os
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 from datamanager.miniimagenet_aug import MiniImageNet
 from samplers import CategoriesSampler
@@ -12,6 +13,7 @@ from convnet import ConvNet
 from algorithm.subspace_projection import Subspace_Projection
 from utils import pprint, set_gpu, Averager, Timer, count_acc, flip
 
+writer = SummaryWriter('save/subspace-5w5sdiscriminative')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -21,7 +23,8 @@ if __name__ == '__main__':
     parser.add_argument('--query', type=int, default=15)
     parser.add_argument('--train-way', type=int, default=5)
     parser.add_argument('--test-way', type=int, default=5)
-    parser.add_argument('--save-path', default='./save/subspace-5w5sdiscriminative')
+    parser.add_argument(
+        '--save-path', default='./save/subspace-5w5sdiscriminative')
     parser.add_argument('--data-path', default='your miniimagenet folder')
     parser.add_argument('--gpu', default='0')
     parser.add_argument('--lamb', type=float, default=0.03)
@@ -46,22 +49,24 @@ if __name__ == '__main__':
                             num_workers=8, pin_memory=True)
 
     model = ConvNet().cuda()
-   
+
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     if args.shot > 1:
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.5)
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(
+            optimizer, step_size=50, gamma=0.5)
     else:
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.5)
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(
+            optimizer, step_size=100, gamma=0.5)
 
     if args.shot == 1:
         shot_num = 2
         args.subspace_dim = 1
     else:
         shot_num = args.shot
-    
+
     projection_pro = Subspace_Projection(num_dim=args.subspace_dim)
-    
+
     def save_model(name):
         if not os.path.exists(args.save_path):
             os.mkdir(args.save_path)
@@ -97,13 +102,16 @@ if __name__ == '__main__':
             proto = model(data_shot)
             proto = proto.reshape(shot_num, args.train_way, -1)
             proto = torch.transpose(proto, 0, 1)
-            hyperplanes, mu = projection_pro.create_subspace(proto, args.train_way, shot_num)
+            hyperplanes, mu = projection_pro.create_subspace(
+                proto, args.train_way, shot_num)
 
             label = torch.arange(args.train_way).repeat(args.query)
             label = label.type(torch.cuda.LongTensor)
 
-            logits, discriminative_loss = projection_pro.projection_metric(model(data_query), hyperplanes, mu=mu)
-            loss = F.cross_entropy(logits, label) + args.lamb*discriminative_loss
+            logits, discriminative_loss = projection_pro.projection_metric(
+                model(data_query), hyperplanes, mu=mu)
+            loss = F.cross_entropy(logits, label) + \
+                args.lamb*discriminative_loss
             acc = count_acc(logits, label)
 
             tl.add(loss.item())
@@ -119,7 +127,10 @@ if __name__ == '__main__':
         tl = tl.item()
         ta = ta.item()
 
-        if epoch < 100 and epoch%10!=0:
+        writer.add_scalar('train_loss', tl, epoch)
+        writer.add_scalar('train_acc', ta, epoch)
+
+        if epoch < 100 and epoch % 10 != 0:
             continue
         model.eval()
 
@@ -135,14 +146,17 @@ if __name__ == '__main__':
                 data_shot = torch.cat((data_shot, flip(data_shot, 3)), dim=0)
 
             proto = model(data_shot)
-            proto = proto.reshape(shot_num, args.test_way, -1) ## change to two samples num_shot=2 with flipped one if shot=1
+            # change to two samples num_shot=2 with flipped one if shot=1
+            proto = proto.reshape(shot_num, args.test_way, -1)
             proto = torch.transpose(proto, 0, 1)
-            hyperplanes,  mu = projection_pro.create_subspace(proto, args.test_way, shot_num)
+            hyperplanes,  mu = projection_pro.create_subspace(
+                proto, args.test_way, shot_num)
 
             label = torch.arange(args.test_way).repeat(args.query)
             label = label.type(torch.cuda.LongTensor)
 
-            logits, _ = projection_pro.projection_metric(model(data_query), hyperplanes, mu=mu)
+            logits, _ = projection_pro.projection_metric(
+                model(data_query), hyperplanes, mu=mu)
             loss = F.cross_entropy(logits, label)
             acc = count_acc(logits, label)
 
@@ -151,7 +165,8 @@ if __name__ == '__main__':
 
         vl = vl.item()
         va = va.item()
-        print('epoch {}, val, loss={:.4f} acc={:.4f} maxacc={:.4f}'.format(epoch, vl, va,trlog['max_acc']))
+        print('epoch {}, val, loss={:.4f} acc={:.4f} maxacc={:.4f}'.format(
+            epoch, vl, va, trlog['max_acc']))
 
         if va > trlog['max_acc']:
             trlog['max_acc'] = va
@@ -162,6 +177,9 @@ if __name__ == '__main__':
         trlog['val_loss'].append(vl)
         trlog['val_acc'].append(va)
 
+        writer.add_scalar('val_loss', vl, epoch)
+        writer.add_scalar('val_acc', va, epoch)
+
         torch.save(trlog, osp.join(args.save_path, 'trlog'))
 
         save_model('epoch-last')
@@ -169,6 +187,5 @@ if __name__ == '__main__':
         if epoch % args.save_epoch == 0:
             save_model('epoch-{}'.format(epoch))
 
-        print('ETA:{}/{}'.format(timer.measure(), timer.measure(epoch / args.max_epoch)))
-
-
+        print('ETA:{}/{}'.format(timer.measure(),
+              timer.measure(epoch / args.max_epoch)))
