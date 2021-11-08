@@ -13,9 +13,6 @@ from algorithm.subspace_projection import Subspace_Projection
 from utils import pprint, set_gpu, Averager, Timer, count_acc, flip
 
 
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--max-epoch', type=int, default=600)

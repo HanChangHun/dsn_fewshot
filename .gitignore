@@ -1,4 +1,5 @@
 datasets/
+*/datasets/
 *.pickle
 */cifar/*
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,jupyternotebooks
