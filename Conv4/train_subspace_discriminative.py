@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from datamanager.miniimagenet_aug import MiniImageNet
+from datamanager.prid_data import PRID_DATA
 from samplers import CategoriesSampler
 from convnet import ConvNet
 from algorithm.subspace_projection import Subspace_Projection
@@ -25,7 +26,9 @@ if __name__ == '__main__':
     parser.add_argument('--test-way', type=int, default=5)
     parser.add_argument(
         '--save-path', default='./save/subspace-5w5sdiscriminative')
-    parser.add_argument('--data-path', default='your miniimagenet folder')
+    # parser.add_argument('--data-path', default='./datasets/mini-imagenet')
+    parser.add_argument(
+        '--data-path', default='../datasets/prid_2011/multi_shot')
     parser.add_argument('--gpu', default='0')
     parser.add_argument('--lamb', type=float, default=0.03)
 
@@ -36,13 +39,15 @@ if __name__ == '__main__':
 
     set_gpu(args.gpu)
 
-    trainset = MiniImageNet('train', args.data_path)
+    # trainset = MiniImageNet('train', args.data_path)
+    trainset = PRID_DATA('train', args.data_path)
     train_sampler = CategoriesSampler(trainset.label, 100,
                                       args.train_way, args.shot + args.query)
     train_loader = DataLoader(dataset=trainset, batch_sampler=train_sampler,
                               num_workers=8, pin_memory=True)
 
-    valset = MiniImageNet('val', args.data_path)
+    # valset = MiniImageNet('val', args.data_path)
+    valset = PRID_DATA('val', args.data_path)
     val_sampler = CategoriesSampler(valset.label, 400,
                                     args.test_way, args.shot + args.query)
     val_loader = DataLoader(dataset=valset, batch_sampler=val_sampler,
